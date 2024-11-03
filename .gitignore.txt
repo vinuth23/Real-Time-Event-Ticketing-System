@@ -1,0 +1,9 @@
+# Ignore node_modules (for React)
+frontend/node_modules/
+
+# Ignore target folder (for Spring Boot)
+backend/target/
+
+# Ignore IDE files
+.idea/
+*.iml
