@@ -16,6 +16,7 @@ import com.ticketingsystem.service.TicketingService;
 import com.ticketingsystem.service.ConfigurationPersistenceService;
 import org.springframework.context.event.EventListener;
 
+//main WebSocket controller
 @Controller
 @Validated
 public class TicketingWebSocketController {
@@ -24,6 +25,7 @@ public class TicketingWebSocketController {
     private final SimpMessagingTemplate messagingTemplate;
     private final ConfigurationPersistenceService configService;
 
+    //constructor for dependency injection
     public TicketingWebSocketController(TicketingService ticketingService,
                                         SimpMessagingTemplate messagingTemplate,
                                         ConfigurationPersistenceService configService) {
@@ -32,6 +34,7 @@ public class TicketingWebSocketController {
         this.configService = configService;
     }
 
+    //start and update system configuration
     @MessageMapping("/system/start")
     @SendTo("/topic/system-status")
     public SystemStatus startSystem(@Valid @Validated(ConfigurationUpdate.VendorOperation.class) ConfigurationUpdate configuration) {
@@ -39,6 +42,7 @@ public class TicketingWebSocketController {
         return ticketingService.startSystem(configuration);
     }
 
+    //start customer simulation process
     @MessageMapping("/customer/start")
     @SendTo("/topic/system-status")
     public SystemStatus startCustomerProcess(@Valid @Validated(ConfigurationUpdate.CustomerOperation.class) ConfigurationUpdate configuration) {
@@ -46,12 +50,14 @@ public class TicketingWebSocketController {
         return ticketingService.startCustomerProcess(configuration);
     }
 
+    //get current system state
     @MessageMapping("/system/state")
     @SendTo("/topic/system-status")
     public SystemStatus getSystemState() {
         return ticketingService.getCurrentState();
     }
 
+    //save system configuration
     @MessageMapping("/settings/save")
     @SendTo("/topic/settings")
     public ConfigurationUpdate saveSettings(@Payload ConfigurationUpdate configuration) {
@@ -61,6 +67,7 @@ public class TicketingWebSocketController {
         return configuration;
     }
 
+    //load saved configuration
     @MessageMapping("/settings/load")
     @SendTo("/topic/settings")
     public ConfigurationUpdate loadSettings() {
@@ -68,12 +75,14 @@ public class TicketingWebSocketController {
         return configService.loadConfiguration();
     }
 
+    //process ticket release request from vendors
     @MessageMapping("/tickets/release")
     @SendTo("/topic/ticket-updates")
     public TicketMessage releaseTickets(@Valid TicketMessage message) {
         logger.info("Received ticket release request: {}", message);
         int ticketsAdded = ticketingService.processTicketRelease(message.getTicketCount());
 
+        // Update operation status
         if (ticketsAdded > 0) {
             message.setStatus("SUCCESS");
             message.setTicketCount(ticketsAdded);
@@ -85,12 +94,14 @@ public class TicketingWebSocketController {
         return message;
     }
 
+    //process ticket purchase request from customers
     @MessageMapping("/tickets/purchase")
     @SendTo("/topic/ticket-updates")
     public TicketMessage purchaseTickets(@Valid TicketMessage message) {
         logger.info("Received ticket purchase request: {}", message);
         String purchasedTicket = ticketingService.processTicketPurchase();
 
+        // Update purchase status
         if (purchasedTicket != null) {
             message.setStatus("SUCCESS");
             message.setTicketId(purchasedTicket);
@@ -102,6 +113,7 @@ public class TicketingWebSocketController {
         return message;
     }
 
+    //broadcast system status updates to all clients
     @EventListener
     public void handleTicketPoolUpdate(TicketingService.TicketPoolUpdateEvent event) {
         logger.info("Broadcasting ticket pool update: {}", event.getSystemStatus());

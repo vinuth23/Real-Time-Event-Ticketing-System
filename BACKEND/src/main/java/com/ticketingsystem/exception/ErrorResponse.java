@@ -21,6 +21,6 @@ public class ErrorResponse {
         this.code = httpStatus.value();
         this.status = httpStatus.name();
         this.message = message;
-        this.path = "/error"; // You may want to set this dynamically later
+        this.path = "/error";
     }
 }

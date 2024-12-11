@@ -2,7 +2,7 @@ package com.ticketingsystem.model;
 
 public class SystemStatus {
     private Integer totalTickets;
-    private Integer availableTickets;  // Changed name for clarity
+    private Integer availableTickets;
     private Integer maxTicketCapacity;
     private Integer ticketsPerRelease;
     private Integer numVendors;
@@ -67,7 +67,6 @@ public class SystemStatus {
         this.availableTickets = availableTickets;
     }
 
-    // New getters and setters for numVendors and numCustomers
     public Integer getNumVendors() {
         return numVendors;
     }

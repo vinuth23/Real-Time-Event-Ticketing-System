@@ -9,17 +9,18 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TicketPool {
     @Getter
     private final int maxTicketCapacity;
-    private final BlockingQueue<String> ticketPool;
-    private final AtomicInteger remainingTicketsToRelease;
+    private final BlockingQueue<String> ticketPool;         // Thread-safe queue for tickets
+    private final AtomicInteger remainingTicketsToRelease;  // Tracks unreleased tickets
     private final AtomicInteger ticketCounter = new AtomicInteger(1);
-    private final ReentrantLock lock = new ReentrantLock();
-    private AtomicInteger totalTickets;
+    private final ReentrantLock lock = new ReentrantLock(); // Lock for thread safety
+    private AtomicInteger totalTickets;                     // Total tickets in system
     private volatile boolean vendorTestMode = true;
 
     @Getter private final int numVendors;
     @Getter private final int numCustomers;
     @Getter private final int ticketsPerRelease;
 
+    //initialize ticket pool with capacity and constraints
     public TicketPool(int initialTotalTickets, int maxTicketCapacity, int numVendors,
                       int numCustomers, int ticketsPerRelease) {
         this.maxTicketCapacity = maxTicketCapacity;
@@ -35,6 +36,7 @@ public class TicketPool {
                 ", TicketsPerRelease=" + ticketsPerRelease);
     }
 
+    //add new tickets to the total pool
     public synchronized void addNewTickets(int additionalTickets) {
         lock.lock();
         try {
@@ -48,6 +50,7 @@ public class TicketPool {
         }
     }
 
+    //release tickets to the available pool
     public synchronized int addTickets(int ticketsToAdd) {
         lock.lock();
         try {
@@ -76,6 +79,7 @@ public class TicketPool {
         }
     }
 
+    //purchase a ticket from the available pool
     public synchronized String purchaseTicket() {
         lock.lock();
         try {
@@ -92,30 +96,37 @@ public class TicketPool {
         }
     }
 
+    //get number of tickets currently in pool
     public synchronized int getRemainingTickets() {
         return ticketPool.size();
     }
 
+    //get total number of tickets in system
     public synchronized int getTotalTickets() {
         return totalTickets.get();
     }
 
+    //get number of tickets not yet released
     public synchronized int getRemainingToRelease() {
         return remainingTicketsToRelease.get();
     }
 
+    //check if there are more tickets to release
     public synchronized boolean hasMoreTicketsToRelease() {
         return remainingTicketsToRelease.get() > 0;
     }
 
+    //check if pool is at capacity
     public synchronized boolean isPoolFull() {
         return ticketPool.size() >= maxTicketCapacity;
     }
 
+    //set vendor test mode status
     public synchronized void setVendorTestMode(boolean enabled) {
         this.vendorTestMode = enabled;
     }
 
+    //string representation of pool state
     @Override
     public String toString() {
         return "TicketPool[available=" + ticketPool.size() +

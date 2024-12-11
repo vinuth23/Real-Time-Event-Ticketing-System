@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
         logger.error("An unexpected error occurred", ex);
 
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
-        errorResponse.setData(new HashMap<>()); // Initialize empty data map
+        errorResponse.setData(new HashMap<>());
         errorResponse.getData().put("message", ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }

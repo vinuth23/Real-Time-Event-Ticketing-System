@@ -12,16 +12,19 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 import java.util.List;
 
+//configuration class for WebSocket setup
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+    //configure message broker for pub/sub messaging
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic", "/queue");
         config.setApplicationDestinationPrefixes("/app");
     }
 
+    //register STOMP endpoints for WebSocket connection
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
@@ -29,11 +32,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .withSockJS();
     }
 
+    //create ObjectMapper bean for JSON conversion
     @Bean
     public ObjectMapper objectMapper() {
         return new ObjectMapper();
     }
 
+    //configure message converter for JSON handling
     @Bean
     public MappingJackson2MessageConverter mappingJackson2MessageConverter(ObjectMapper objectMapper) {
         MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
@@ -41,6 +46,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         return converter;
     }
 
+    //add message converters to the WebSocket configuration
     @Override
     public boolean configureMessageConverters(List<MessageConverter> messageConverters) {
         messageConverters.add(mappingJackson2MessageConverter(objectMapper()));

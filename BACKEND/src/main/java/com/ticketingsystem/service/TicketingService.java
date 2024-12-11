@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+//main service for managing ticket system operations
 @Service
 public class TicketingService {
     private TicketPool ticketPool;
@@ -24,12 +25,14 @@ public class TicketingService {
     private final List<Customer> customers = new ArrayList<>();
     private volatile boolean isSystemRunning = false;
 
+    //initialize service with event publisher and config service
     public TicketingService(ApplicationEventPublisher eventPublisher,
                             ConfigurationPersistenceService configService) {
         this.eventPublisher = eventPublisher;
         this.configService = configService;
     }
 
+    //start a new customer process with given configuration
     public synchronized SystemStatus startCustomerProcess(ConfigurationUpdate configUpdate) {
         if (!isSystemRunning) {
             throw new IllegalStateException("System must be running before starting customer process");
@@ -43,7 +46,7 @@ public class TicketingService {
                     ticketPool,
                     eventPublisher,
                     configUpdate.getTotalTickets(),
-                    configUpdate.getPurchaseInterval()  // Make sure we're using purchaseInterval here
+                    configUpdate.getPurchaseInterval()
             );
 
             customers.add(customer);
@@ -58,6 +61,7 @@ public class TicketingService {
         }
     }
 
+    //add more tickets to the existing pool
     public synchronized SystemStatus addMoreTickets(ConfigurationUpdate configUpdate) {
         if (!isSystemRunning || ticketPool == null) {
             return startSystem(configUpdate);
@@ -92,6 +96,7 @@ public class TicketingService {
         return status;
     }
 
+    //initialize or restart the ticket system
     public SystemStatus startSystem(ConfigurationUpdate configUpdate) {
         if (isSystemRunning && ticketPool != null) {
             return addMoreTickets(configUpdate);
@@ -117,6 +122,7 @@ public class TicketingService {
         );
     }
 
+    //update system configuration with new settings
     public SystemStatus updateConfiguration(ConfigurationUpdate configUpdate) {
         if (!isValidConfiguration(configUpdate)) {
             throw new IllegalArgumentException("Invalid configuration values");
@@ -141,6 +147,7 @@ public class TicketingService {
         return new SystemStatus();
     }
 
+    //validate configuration parameters
     private boolean isValidConfiguration(ConfigurationUpdate configUpdate) {
         if (configUpdate.getTotalTickets() <= 0) {
             System.err.println("Total tickets must be greater than 0.");
@@ -170,8 +177,7 @@ public class TicketingService {
         return true;
     }
 
-
-
+    //initialize system with given parameters
     public synchronized SystemStatus initializeSystem(int totalTickets, int ticketsPerRelease,
                                                       int maxTicketCapacity, int numVendors, int numCustomers) {
         if (isSystemRunning) {
@@ -209,6 +215,7 @@ public class TicketingService {
         }
     }
 
+    //create and start vendor and customer threads
     private void startVendorsAndCustomers(int numVendors, int numCustomers, CountDownLatch vendorLatch) {
         vendors.clear();
         customers.clear();
@@ -227,6 +234,7 @@ public class TicketingService {
         }
     }
 
+    //gracefully shutdown the system
     public synchronized void shutdownSystem() {
         if (!isSystemRunning) {
             return;
@@ -251,6 +259,7 @@ public class TicketingService {
         eventPublisher.publishEvent(new TicketPoolUpdateEvent(this, new SystemStatus()));
     }
 
+    //process a ticket purchase request
     public synchronized String processTicketPurchase() {
         if (ticketPool == null) {
             return null;
@@ -263,6 +272,7 @@ public class TicketingService {
         return purchasedTicket;
     }
 
+    //process a ticket release request
     public synchronized int processTicketRelease(int ticketsToRelease) {
         if (ticketPool == null) {
             return 0;
@@ -275,6 +285,7 @@ public class TicketingService {
         return ticketsAdded;
     }
 
+    //get current system status
     public SystemStatus getSystemStatus(int numVendors, int numCustomers) {
         if (ticketPool == null) {
             return new SystemStatus();
@@ -289,6 +300,7 @@ public class TicketingService {
         );
     }
 
+    //get current system state
     public SystemStatus getCurrentState() {
         if (ticketPool == null) {
             return new SystemStatus();
@@ -296,7 +308,7 @@ public class TicketingService {
         return getSystemStatus(vendors.size(), customers.size());
     }
 
-    // Event classes
+    //event class for ticket pool updates
     public static class TicketPoolUpdateEvent {
         private final Object source;
         @Getter
@@ -312,6 +324,7 @@ public class TicketingService {
         }
     }
 
+    //event class for configuration updates
     public static class ConfigurationUpdateEvent {
         private final Object source;
         @Getter
