@@ -1,149 +1,162 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-function Settings({ isOpen, onClose, onSave, currentConfig }) {
-  const [config, setConfig] = useState({
-    maxTicketCapacity: currentConfig?.maxTicketCapacity || 100,
-    ticketsPerRelease: currentConfig?.ticketsPerRelease || 1,
-    releaseInterval: currentConfig?.releaseInterval || 2,
-    purchaseInterval: currentConfig?.purchaseInterval || 2
-  });
+class Settings extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            config: {
+                maxTicketCapacity: props.currentConfig?.maxTicketCapacity || 100,
+                ticketsPerRelease: props.currentConfig?.ticketsPerRelease || 1,
+                releaseInterval: props.currentConfig?.releaseInterval || 2,
+                purchaseInterval: props.currentConfig?.purchaseInterval || 2
+            }
+        };
 
-  if (!isOpen) return null;
+        // Bind methods
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
+    }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave(config);
-    onClose();
-  };
+    handleSubmit(e) {
+        e.preventDefault();
+        this.props.onSave(this.state.config);
+        this.props.onClose();
+    }
 
-  const modalStyle = {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000
-  };
+    handleInputChange(field, value) {
+        this.setState(prevState => ({
+            config: {
+                ...prevState.config,
+                [field]: parseInt(value)
+            }
+        }));
+    }
 
-  const contentStyle = {
-    background: 'white',
-    padding: '20px',
-    borderRadius: '8px',
-    width: '90%',
-    maxWidth: '500px'
-  };
+    // Styles object to keep render method clean
+    styles = {
+        modal: {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+        },
+        content: {
+            background: 'white',
+            padding: '20px',
+            borderRadius: '8px',
+            width: '90%',
+            maxWidth: '500px'
+        },
+        formGroup: {
+            marginBottom: '15px'
+        },
+        label: {
+            display: 'block',
+            marginBottom: '5px'
+        },
+        input: {
+            width: '100%',
+            padding: '8px',
+            marginBottom: '10px',
+            borderRadius: '4px',
+            border: '1px solid #ddd'
+        },
+        button: {
+            padding: '8px 16px',
+            margin: '0 10px',
+            borderRadius: '4px',
+            cursor: 'pointer'
+        },
+        saveButton: {
+            padding: '8px 16px',
+            margin: '0 10px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            backgroundColor: '#007bff',
+            color: 'white',
+            border: 'none'
+        },
+        cancelButton: {
+            padding: '8px 16px',
+            margin: '0 10px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            backgroundColor: '#f8f9fa',
+            border: '1px solid #ddd',
+            color: 'black'
+        }
+    };
 
-  const formGroupStyle = {
-    marginBottom: '15px'
-  };
+    render() {
+        const { isOpen, onClose } = this.props;
+        const { config } = this.state;
 
-  const labelStyle = {
-    display: 'block',
-    marginBottom: '5px'
-  };
+        if (!isOpen) return null;
 
-  const inputStyle = {
-    width: '100%',
-    padding: '8px',
-    marginBottom: '10px',
-    borderRadius: '4px',
-    border: '1px solid #ddd'
-  };
-
-  const buttonStyle = {
-    padding: '8px 16px',
-    margin: '0 10px',
-    borderRadius: '4px',
-    cursor: 'pointer'
-  };
-
-  const saveButtonStyle = {
-    ...buttonStyle,
-    backgroundColor: '#007bff',
-    color: 'white',
-    border: 'none'
-  };
-
-  const cancelButtonStyle = {
-    ...buttonStyle,
-    backgroundColor: '#f8f9fa',
-    border: '1px solid #ddd',
-    color: 'black'
-  };
-
-  return (
-    <div style={modalStyle}>
-      <div style={contentStyle}>
-        <h2 style={{ marginBottom: '20px' }}>System Settings</h2>
-        <form onSubmit={handleSubmit}>
-          <div style={formGroupStyle}>
-            <label style={labelStyle}>Maximum Ticket Capacity:</label>
-            <input
-              type="number"
-              min="1"
-              style={inputStyle}
-              value={config.maxTicketCapacity}
-              onChange={(e) => setConfig({
-                ...config,
-                maxTicketCapacity: parseInt(e.target.value)
-              })}
-            />
-          </div>
-          <div style={formGroupStyle}>
-            <label style={labelStyle}>Tickets Per Release:</label>
-            <input
-              type="number"
-              min="1"
-              style={inputStyle}
-              value={config.ticketsPerRelease}
-              onChange={(e) => setConfig({
-                ...config,
-                ticketsPerRelease: parseInt(e.target.value)
-              })}
-            />
-          </div>
-          <div style={formGroupStyle}>
-            <label style={labelStyle}>Vendor Release Interval (seconds):</label>
-            <input
-              type="number"
-              min="1"
-              style={inputStyle}
-              value={config.releaseInterval}
-              onChange={(e) => setConfig({
-                ...config,
-                releaseInterval: parseInt(e.target.value)
-              })}
-            />
-          </div>
-          <div style={formGroupStyle}>
-            <label style={labelStyle}>Customer Purchase Interval (seconds):</label>
-            <input
-              type="number"
-              min="1"
-              style={inputStyle}
-              value={config.purchaseInterval}
-              onChange={(e) => setConfig({
-                ...config,
-                purchaseInterval: parseInt(e.target.value)
-              })}
-            />
-          </div>
-          <div style={{ textAlign: 'right', marginTop: '20px' }}>
-            <button type="button" onClick={onClose} style={cancelButtonStyle}>
-              Cancel
-            </button>
-            <button type="submit" style={saveButtonStyle}>
-              Save Changes
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+        return (
+            <div style={this.styles.modal}>
+                <div style={this.styles.content}>
+                    <h2 style={{ marginBottom: '20px' }}>System Settings</h2>
+                    <form onSubmit={this.handleSubmit}>
+                        <div style={this.styles.formGroup}>
+                            <label style={this.styles.label}>Maximum Ticket Capacity:</label>
+                            <input
+                                type="number"
+                                min="1"
+                                style={this.styles.input}
+                                value={config.maxTicketCapacity}
+                                onChange={(e) => this.handleInputChange('maxTicketCapacity', e.target.value)}
+                            />
+                        </div>
+                        <div style={this.styles.formGroup}>
+                            <label style={this.styles.label}>Tickets Per Release:</label>
+                            <input
+                                type="number"
+                                min="1"
+                                style={this.styles.input}
+                                value={config.ticketsPerRelease}
+                                onChange={(e) => this.handleInputChange('ticketsPerRelease', e.target.value)}
+                            />
+                        </div>
+                        <div style={this.styles.formGroup}>
+                            <label style={this.styles.label}>Vendor Release Interval (seconds):</label>
+                            <input
+                                type="number"
+                                min="1"
+                                style={this.styles.input}
+                                value={config.releaseInterval}
+                                onChange={(e) => this.handleInputChange('releaseInterval', e.target.value)}
+                            />
+                        </div>
+                        <div style={this.styles.formGroup}>
+                            <label style={this.styles.label}>Customer Purchase Interval (seconds):</label>
+                            <input
+                                type="number"
+                                min="1"
+                                style={this.styles.input}
+                                value={config.purchaseInterval}
+                                onChange={(e) => this.handleInputChange('purchaseInterval', e.target.value)}
+                            />
+                        </div>
+                        <div style={{ textAlign: 'right', marginTop: '20px' }}>
+                            <button type="button" onClick={onClose} style={this.styles.cancelButton}>
+                                Cancel
+                            </button>
+                            <button type="submit" style={this.styles.saveButton}>
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        );
+    }
 }
 
 export default Settings;
