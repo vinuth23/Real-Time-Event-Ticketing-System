@@ -1,0 +1,67 @@
+@startuml
+
+class TicketingService {
+    - TicketPool ticketPool
+    - ExecutorService executorService
+    - Configuration configuration
+    - ApplicationEventPublisher eventPublisher
+    - List<Vendor> vendors
+    - List<Customer> customers
+    - boolean isSystemRunning
+    + SystemStatus startCustomerProcess(ConfigurationUpdate configUpdate)
+    + SystemStatus addMoreTickets(ConfigurationUpdate configUpdate)
+    + SystemStatus startSystem(ConfigurationUpdate configUpdate)
+    + SystemStatus initializeSystem(int totalTickets, int ticketsPerRelease, int maxTicketCapacity, int numVendors, int numCustomers)
+    + void shutdownSystem()
+    + String processTicketPurchase()
+    + int processTicketRelease(int ticketsToRelease)
+    + SystemStatus getSystemStatus(int numVendors, int numCustomers)
+    + SystemStatus getCurrentState()
+}
+
+class TicketPool {
+    - int maxTicketCapacity
+    - BlockingQueue<String> ticketPool
+    - AtomicInteger remainingTicketsToRelease
+    - AtomicInteger ticketCounter
+    - ReentrantLock lock
+    - AtomicInteger totalTickets
+    - boolean vendorTestMode
+    + int getRemainingTickets()
+    + int getTotalTickets()
+    + int getRemainingToRelease()
+    + boolean hasMoreTicketsToRelease()
+    + boolean isPoolFull()
+    + void setVendorTestMode(boolean enabled)
+    + void addNewTickets(int additionalTickets)
+    + int addTickets(int ticketsToAdd)
+    + String purchaseTicket()
+}
+
+class Vendor {
+    - String name
+    - TicketPool ticketPool
+    - CountDownLatch latch
+    - ApplicationEventPublisher eventPublisher
+    - int releaseIntervalSeconds
+    - boolean running
+    - int ticketsReleased
+    + void run()
+    + void stop()
+    - void publishStatus()
+}
+
+TicketingService "1" -- "1..*" Vendor : manages
+TicketingService "1" -- "1..*" Customer : manages
+TicketingService "1" -- "1" TicketPool : uses
+TicketingService "1" -- "1" Configuration : uses
+TicketingService "1" -- "1" ApplicationEventPublisher : uses
+
+Vendor "1" -- "1" TicketPool : works with
+Vendor "1" -- "1" CountDownLatch : synchronizes
+
+TicketPool "1" -- "0..*" String : contains
+TicketPool "1" -- "1" AtomicInteger : tracks
+TicketPool "1" -- "1" ReentrantLock : synchronizes
+
+@enduml

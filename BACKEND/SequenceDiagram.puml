@@ -1,0 +1,34 @@
+@startuml
+
+actor Vendor
+actor Customer
+participant TicketingService
+participant TicketPool
+participant Vendor
+participant Customer
+
+== Vendor releases tickets ==
+
+Vendor -> TicketingService : startCustomerProcess(ConfigurationUpdate)
+activate TicketingService
+TicketingService -> TicketPool : addTickets(1)
+activate TicketPool
+TicketPool -> TicketPool : addTickets(1)
+TicketPool -> TicketingService : return added tickets
+deactivate TicketPool
+TicketingService -> Vendor : notify ticket release success
+deactivate TicketingService
+
+== Customer purchases ticket ==
+
+Customer -> TicketingService : processTicketPurchase()
+activate TicketingService
+TicketingService -> TicketPool : purchaseTicket()
+activate TicketPool
+TicketPool -> TicketPool : poll ticket from pool
+TicketPool -> TicketingService : return ticket
+deactivate TicketPool
+TicketingService -> Customer : return purchased ticket
+deactivate TicketingService
+
+@enduml
